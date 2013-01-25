@@ -10,15 +10,12 @@ export HISTCONTROL=erasedups
 # Append to history file
 shopt -s histappend
 
-VISUAL=vim
-EDITOR="$VISUAL"
 LESS="FRX"
 RI="--format ansi -T"
-PSQL_EDITOR='vim -c"setf sql"'
 CLICOLOR=1
 LSCOLORS=gxgxcxdxbxegedabagacad
 
-export VISUAL EDITOR LESS RI PSQL_EDITOR CLICOLOR LSCOLORS
+export  LESS RI PSQL_EDITOR CLICOLOR LSCOLORS
 
 bind 'set bind-tty-special-chars off'
 bind '"\ep": history-search-backward'
