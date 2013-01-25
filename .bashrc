@@ -37,4 +37,6 @@ fi
 [ -x /usr/local/bin/emacsclient ] && alias emacsclient=/usr/local/bin/emacsclient
 
 PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+[ -d '/usr/local/share/npm/bin' ] &&  PATH=$PATH:/usr/local/share/npm/bin # Node stuff installed with npm
+
 [ ! -f "$HOME/.bashrc.local" ] || . "$HOME/.bashrc.local"
