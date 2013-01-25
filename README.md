@@ -26,6 +26,12 @@ Start by cloning down the repo:
 
 	$ git clone git@github.com:continuum/dotmatrix.git
 
+Then move around some of your current files:
+
+	$ mv ~/.bashrc ~/.bashrc.local
+	$ mv ~/.gitconfig ~/.gitconfig.local
+	$ ln -s /PUT/HERE/THE/PATH/WHERE/YOU/HAVE/CONTINUUM/PROJECTS ~/continuum
+
 Then run this script:
 
 	$ bin/install
