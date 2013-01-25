@@ -1,8 +1,8 @@
 # ~/.hashrc
 # vim:set ft=sh sw=2 sts=2:
 
-[ -e "$HASHROCKET_DIR" ] || HASHROCKET_DIR="$HOME/hashrocket"
-export HASHROCKET_DIR
+[ -e "$CONTINUUM_DIR" ] || CONTINUUM_DIR="$HOME/src/continuum"
+export CONTINUUM_DIR
 
 for dir in /usr/local/bin "$HOME/bin" .git/safe/../../bin .git/bin; do
   case "$PATH:" in
@@ -20,8 +20,8 @@ for dir in /usr/local/sbin /opt/local/sbin /usr/X11/bin; do
   esac
 done
 
-hcd() {
-  cd "$HASHROCKET_DIR/$1"
+ccd() {
+  cd "$CONTINUUM_DIR/$1"
   if [ -e .git/safe -a ! -L .git/bin ]; then
     ln -s ../bin .git
   fi
@@ -36,29 +36,29 @@ git() {
   fi
 }
 
-hclone() {
+cclone() {
   local url basename example new
   if [ x-f = "x$1" ]; then
     shift
-    rm -rf "$HASHROCKET_DIR/`basename $1 .git`"
+    rm -rf "$CONTINUUM_DIR/`basename $1 .git`"
   fi
   basename="`basename $1 .git`"
-  if [ ! -d "$HASHROCKET_DIR/$basename" ]; then
+  if [ ! -d "$CONTINUUM_DIR/$basename" ]; then
     new=1
     case "$1" in
       *:*) url="$1" ;;
       */*) url="git@github.com:$1.git" ;;
-      *)   url="git@github.com:hashrocket/$1.git" ;;
+      *)   url="ssh://git@continuumchile.repositoryhosting.com/continuumchile/$1.git" ;;
     esac
-    git clone "$url" "$HASHROCKET_DIR/$basename" || return 1
-    for example in "$HASHROCKET_DIR/$basename"/config/*.example.yml; do
+    git clone "$url" "$CONTINUUM_DIR/$basename" || return 1
+    for example in "$CONTINUUM_DIR/$basename"/config/*.example.yml; do
       cp "$example" "${example%.example.yml}.yml"
     done 2>/dev/null
-    if [ -f "$HASHROCKET_DIR/$basename/.rvmrc" ] && command -v __rvm_trust_rvmrc >/dev/null; then
-      __rvm_trust_rvmrc "$HASHROCKET_DIR/$basename/.rvmrc"
+    if [ -f "$CONTINUUM_DIR/$basename/.rvmrc" ] && command -v __rvm_trust_rvmrc >/dev/null; then
+      __rvm_trust_rvmrc "$CONTINUUM_DIR/$basename/.rvmrc"
     fi
   fi
-  hcd "$basename"
+  ccd "$basename"
   ln -sf ../bin .git
   if [ ! -f .git/hooks/post-rewrite ]; then
     cat > .git/hooks/post-rewrite <<EOS
@@ -98,15 +98,15 @@ EOS
 
 # Tab completion
 if [ -n "$BASH_VERSION" ]; then
-  _hcd()
+  _ccd()
   {
     local cur projects
 
-    [ -r "$HASHROCKET_DIR" ] || return 0
+    [ -r "$CONTINUUM_DIR" ] || return 0
 
     eval 'COMPREPLY=()'
     cur=${COMP_WORDS[COMP_CWORD]}
-    projects=$(\ls "$HASHROCKET_DIR")
+    projects=$(\ls "$CONTINUUM_DIR")
 
     if [ $COMP_CWORD -eq 1 ]; then
       eval 'COMPREPLY=( $(compgen -o filenames -W "$projects" $cur) )'
@@ -114,9 +114,9 @@ if [ -n "$BASH_VERSION" ]; then
 
     return 0
   }
-  complete -F _hcd hcd hclone mux
+  complete -F _ccd ccd cclone mux
 elif [ -n "$ZSH_VERSION" ]; then
-  compctl -/ -S '' -W "$HASHROCKET_DIR" hcd hclone mux
+  compctl -/ -S '' -W "$CONTINUUM_DIR" ccd cclone mux
 fi
 
 rails_root() {
