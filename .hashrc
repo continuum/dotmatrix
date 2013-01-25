@@ -1,7 +1,7 @@
 # ~/.hashrc
 # vim:set ft=sh sw=2 sts=2:
 
-[ -e "$CONTINUUM_DIR" ] || CONTINUUM_DIR="$HOME/src/continuum"
+[ -e "$CONTINUUM_DIR" ] || CONTINUUM_DIR="$HOME/continuum"
 export CONTINUUM_DIR
 
 for dir in /usr/local/bin "$HOME/bin" .git/safe/../../bin .git/bin; do
