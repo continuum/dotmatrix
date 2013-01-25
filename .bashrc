@@ -33,5 +33,8 @@ if [ -f '/usr/local/etc/bash_completion.d/git-completion.bash' ]; then
   source '/usr/local/etc/bash_completion.d/git-completion.bash'
 fi
 
+# Use the right emacsclient when installed via brew
+[ -x /usr/local/bin/emacsclient ] && alias emacsclient=/usr/local/bin/emacsclient
+
 PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
 [ ! -f "$HOME/.bashrc.local" ] || . "$HOME/.bashrc.local"
