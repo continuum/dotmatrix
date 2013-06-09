@@ -48,7 +48,7 @@ cclone() {
     case "$1" in
       *:*) url="$1" ;;
       */*) url="git@github.com:$1.git" ;;
-      *)   url="ssh://git@continuumchile.repositoryhosting.com/continuumchile/$1.git" ;;
+      *)   url="git@bitbucket.org:continuumchile/$1.git" ;;
     esac
     git clone "$url" "$CONTINUUM_DIR/$basename" || return 1
     for example in "$CONTINUUM_DIR/$basename"/config/*.example.yml; do
