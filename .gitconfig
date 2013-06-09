@@ -6,6 +6,7 @@
 	put = push origin HEAD
 	fixup = !sh -c 'git commit -m \"fixup! $(git log -1 --format='\\''%s'\\'' $@)\"' -
 	squash = !sh -c 'git commit -m \"squash! $(git log -1 --format='\\''%s'\\'' $@)\"' -
+	doff = reset head^
 	ri = rebase --interactive
 	br = branch
 	pruneremote = remote prune origin
@@ -16,6 +17,7 @@
 	add-untracked = !"git status --porcelain | awk '/\\?\\?/{ print $2 }' | xargs git add"
 	ln = log --pretty=format:'%Cblue%h %Cred* %C(yellow)%s'
 	reset-authors = commit --amend --reset-author -CHEAD
+	rmbranch = "!f(){ git branch -d ${1} && git push origin --delete ${1}; };f"
 [branch]
 	autosetuprebase = always
 [color]

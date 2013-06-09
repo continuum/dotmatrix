@@ -47,10 +47,79 @@ if &statusline == ''
   set statusline=[%n]\ %<%.99f\ %h%w%m%r%{HTry('CapsLockStatusline')}%y%{HTry('rails#statusline')}%{HTry('fugitive#statusline')}%#ErrorMsg#%{HTry('SyntasticStatuslineFlag')}%*%=%-14.(%l,%c%V%)\ %P
 endif
 
-set undodir=~/.vim/tmp//,/var/tmp//,/tmp//,.
+if has('persistent_undo')
+  set undofile
+  set undodir^=~/.vim/tmp//,~/Library/Vim/undo
+endif
 
 let g:rubycomplete_buffer_loading = 1
 let g:rubycomplete_rails = 1
+
+if !exists('g:rails_projections')
+  let g:rails_projections = {}
+endif
+
+call extend(g:rails_projections, {
+      \  "app/presenters/*.rb": {
+      \     "command": "presenter",
+      \     "test": "spec/presenter/%s_spec.rb",
+      \     "alternate": "spec/presenter/%s_spec.rb",
+      \     "template": "class %S\nend" }
+      \ }, 'keep')
+
+if !exists('g:rails_gem_projections')
+  let g:rails_gem_projections = {}
+endif
+
+call extend(g:rails_gem_projections, {
+      \ "active_model_serializers": {
+      \   "app/serializers/*_serializer.rb": {
+      \     "command": "serializer",
+      \     "template": "class %SSerializer < ActiveModel::Serializer\nend",
+      \     "affinity": "model"}},
+      \ "rspec": {
+      \    "spec/support/*.rb": {
+      \      "command": "support"}},
+      \ "cucumber": {
+      \   "features/*.feature": {
+      \     "command": "feature",
+      \     "template": "Feature: %h"},
+      \   "features/support/*.rb": {
+      \     "command": "support"},
+      \   "features/support/env.rb": {
+      \     "command": "support"},
+      \   "features/step_definitions/*_steps.rb": {
+      \     "command": "steps"}},
+      \ "carrierwave": {
+      \   "app/uploaders/*_uploader.rb": {
+      \     "command": "uploader",
+      \     "template": "class %SUploader < CarrierWave::Uploader::Base\nend"}},
+      \ "draper": {
+      \   "app/decorators/*_decorator.rb": {
+      \     "command": "decorator",
+      \     "affinity": "model",
+      \     "template": "class %SDecorator < ApplicationDecorator\nend"}},
+      \ "fabrication": {
+      \   "spec/fabricators/*_fabricator.rb": {
+      \     "command": ["fabricator", "factory"],
+      \     "alternate": "app/models/%s.rb",
+      \     "related": "db/schema.rb#%p",
+      \     "test": "spec/models/%s_spec.rb",
+      \     "template": "Fabricator :%s do\nend",
+      \     "affinity": "model"}},
+      \ "factory_girl": {
+      \   "spec/factories/*_factory.rb": {
+      \     "command": "factory",
+      \     "alternate": "app/models/%s.rb",
+      \     "related": "db/schema.rb#%p",
+      \     "test": "spec/models/%s_spec.rb",
+      \     "template": "FactoryGirl.define do\n  factory :%s do\n  end\nend",
+      \     "affinity": "model"},
+      \   "spec/factories.rb": {
+      \      "command": "factory"},
+      \   "test/factories.rb": {
+      \      "command": "factory"}}
+      \ }, 'keep')
 
 inoremap <C-C> <Esc>`^
 
@@ -93,7 +162,7 @@ endif
 function! s:unused_steps(bang) abort
   let savegp = &grepprg
 
-  let prg = "$HASHROCKET_DIR/dotmatrix/bin/unused_steps"
+  let prg = "hr unused"
   if a:bang | let prg = prg.' -f' | endif
   let &grepprg = prg
 
@@ -108,23 +177,6 @@ function! s:unused_steps(bang) abort
 endfunction
 
 command! -bang UnusedSteps call <SID>unused_steps("<bang>")
-
-function! s:ExtractIntoRspecLet()
-  let pos = getpos('.')
-  if empty(matchstr(getline("."), " = ")) == 1
-    echo "Can't find an assignment"
-    return
-  end
-  normal 0
-  normal! "tdd
-  exec "?^\\s*\\<\\(describe\\|context\\)\\>"
-  normal! $"tp
-  exec 's/\v([a-z_][a-zA-Z0-9_]*) +\= +(.+)/let(:\1) { \2 }'
-  normal V=
-  let pos[1] = pos[1] + 1
-  call setpos('.', pos)
-  echo ''
-endfunction
 
 augroup hashrocket
   autocmd!
@@ -141,20 +193,9 @@ augroup hashrocket
   autocmd Syntax   css  syn sync minlines=50
 
   autocmd FileType ruby nmap <buffer> <leader>bt <Plug>BlockToggle
-  autocmd BufRead *_spec.rb nmap <buffer> <leader>l :<C-U>call <SID>ExtractIntoRspecLet()<CR>
+  autocmd BufRead *_spec.rb map <buffer> <leader>l <Plug>ExtractRspecLet
 
   autocmd User Rails nnoremap <buffer> <D-r> :<C-U>Rake<CR>
   autocmd User Rails nnoremap <buffer> <D-R> :<C-U>.Rake<CR>
-  autocmd User Rails Rnavcommand decorator app/decorators -suffix=_decorator.rb -default=model()
-  autocmd User Rails Rnavcommand presenter app/presenters -suffix=_presenter.rb -default=model()
-  autocmd User Rails Rnavcommand uploader app/uploaders -suffix=_uploader.rb -default=model()
-  autocmd User Rails Rnavcommand steps features/step_definitions spec/steps -suffix=_steps.rb -default=web
-  autocmd User Rails Rnavcommand blueprint spec/blueprints -suffix=_blueprint.rb -default=model()
-  autocmd User Rails Rnavcommand factory spec/factories -suffix=_factory.rb -default=model()
-  autocmd User Rails Rnavcommand fabricator spec/fabricators -suffix=_fabricator.rb -default=model()
-  autocmd User Rails Rnavcommand feature features -suffix=.feature -default=cucumber
-  autocmd User Rails Rnavcommand serializer app/serializers -suffix=_serializer.rb -default=model()
-  autocmd User Rails Rnavcommand support spec/support features/support -default=env
-  autocmd User Rails Rnavcommand worker app/workers -suffix=_worker.rb -default=model()
   autocmd User Fugitive command! -bang -bar -buffer -nargs=* Gpr :Git<bang> pull --rebase <args>
 augroup END

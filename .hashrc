@@ -4,7 +4,7 @@
 [ -e "$CONTINUUM_DIR" ] || CONTINUUM_DIR="$HOME/continuum"
 export CONTINUUM_DIR
 
-for dir in /usr/local/bin "$HOME/bin" .git/safe/../../bin .git/bin; do
+for dir in /usr/local/bin "$HOME/bin" .git/bin .git/safe/../../bin; do
   case "$PATH:" in
     *:"$dir":*) PATH="`echo "$PATH"|sed -e "s#:$dir##"`" ;;
   esac
@@ -60,6 +60,7 @@ cclone() {
   fi
   ccd "$basename"
   ln -sf ../bin .git
+  mkdir -p .git/safe
   if [ ! -f .git/hooks/post-rewrite ]; then
     cat > .git/hooks/post-rewrite <<EOS
 #!/bin/sh
@@ -93,6 +94,8 @@ EOS
   echo "fi" >> .git/hooks/post-checkout
   if [ -n "$new" -a -x script/setup ]; then
     script/setup
+  elif [ -n "$new" -a -x bin/setup ]; then
+    bin/setup
   fi
 }
 
@@ -114,12 +117,12 @@ if [ -n "$BASH_VERSION" ]; then
 
     return 0
   }
-  complete -F _ccd ccd cclone mux
+  complete -F _ccd ccd cclone
 elif [ -n "$ZSH_VERSION" ]; then
-  compctl -/ -S '' -W "$CONTINUUM_DIR" ccd cclone mux
+  compctl -/ -S '' -W "$CONTINUUM_DIR" ccd cclone
 fi
 
-rails_root() {
+__rails_root() {
   (
   dir=${1:-$(pwd)}
   i=0
@@ -136,13 +139,16 @@ rails_root() {
 }
 
 script_rails() {
-  if [ -f "`rails_root`/script/rails" ]; then
-    "`rails_root`/script/rails" "$@"
+  local root="`__rails_root`"
+  if [ -f "$root/script/rails" ]; then
+    "$root/script/rails" "$@"
+  elif [ -f "$root/bin/rails" -a -f "$root/config/application.rb" ]; then
+    "$root/bin/rails" "$@"
   else
     local name
     name="$1"
     shift
-    "`rails_root`/script/$name" "$@"
+    "$root/script/$name" "$@"
   fi
 }
 
@@ -154,15 +160,12 @@ alias sc='script_rails console'
 alias ss='script_rails server -u'
 alias sdbc='script_rails dbconsole -p'
 
-alias vanguard="guard -c -n false"
-alias vangaurd="vanguard"
-
 alias ll='ls -l'
 
 # git_prompt_info accepts 0 or 1 arguments (i.e., format string)
 # returns text to add to bash PS1 prompt (includes branch name)
 git_prompt_info () {
-  local g="$(git rev-parse --git-dir 2>/dev/null)"
+  local g="$(command git rev-parse --git-dir 2>/dev/null)"
   if [ -n "$g" ]; then
     local r
     local b
@@ -173,7 +176,7 @@ git_prompt_info () {
       if test -f "$g/rebase-apply/rebasing" ; then
         r="|REBASE"
       fi
-      b="$(git symbolic-ref HEAD 2>/dev/null)"
+      b="$(command git symbolic-ref HEAD 2>/dev/null)"
     # Interactive rebase
     elif [ -f "$g/rebase-merge/interactive" ] ; then
       r="|REBASE-i"
@@ -181,13 +184,13 @@ git_prompt_info () {
     # Merging
     elif [ -f "$g/MERGE_HEAD" ] ; then
       r="|MERGING"
-      b="$(git symbolic-ref HEAD 2>/dev/null)"
+      b="$(command git symbolic-ref HEAD 2>/dev/null)"
     else
       if [ -f "$g/BISECT_LOG" ] ; then
         r="|BISECTING"
       fi
-      if ! b="$(git symbolic-ref HEAD 2>/dev/null)" ; then
-        if ! b="$(git describe --exact-match HEAD 2>/dev/null)" ; then
+      if ! b="$(command git symbolic-ref HEAD 2>/dev/null)" ; then
+        if ! b="$(command git describe --exact-match HEAD 2>/dev/null)" ; then
           b="$(cut -c1-7 "$g/HEAD")..."
         fi
       fi
@@ -199,7 +202,7 @@ git_prompt_info () {
       newfile='\?\? '
     fi
     d=''
-    s=$(git status --porcelain 2> /dev/null)
+    s=$(command git status --porcelain 2> /dev/null)
     [[ $s =~ "$newfile" ]] && d+='+'
     [[ $s =~ "M " ]] && d+='*'
     [[ $s =~ "D " ]] && d+='-'
@@ -220,6 +223,7 @@ gco () {
 }
 
 alias gap='git add -p'
+alias gnap='git add -N . && git add -p'
 alias gb='git branch'
 alias gc='git commit -v'
 alias gca='git commit -a -v'
@@ -237,10 +241,11 @@ alias grc='git rebase --continue'
 alias gra='git rebase --abort'
 alias reset-authors='git commit --amend --reset-author -C HEAD'
 alias vi='vim'
-
-bettervim="/Applications/MacVim.app/Contents/MacOS/Vim"
-[ -f "$bettervim" ] && alias vim="$bettervim"
-[ -f "$HOME$bettervim" ] && alias vim="$HOME$bettervim"
-
 alias sj='specjour'
 alias rd='rake deploy'
+
+if [ "$(uname)" = Darwin -a "$(command -v vim)" = /usr/bin/vim ]; then
+  bettervim="/Applications/MacVim.app/Contents/MacOS/Vim"
+  [ -f "$bettervim" ] && alias vim="$bettervim"
+  [ -f "$HOME$bettervim" ] && alias vim="$HOME$bettervim"
+fi

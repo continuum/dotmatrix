@@ -17,13 +17,15 @@ LSCOLORS=gxgxcxdxbxegedabagacad
 
 export  LESS RI PSQL_EDITOR CLICOLOR LSCOLORS
 
+if [ -t 1 ]; then
 bind 'set bind-tty-special-chars off'
 bind '"\ep": history-search-backward'
 bind '"\en": history-search-forward'
 bind '"\C-w": backward-kill-word'
+bind '"\C-q": "%-\n"'
+fi
 
 export HISTIGNORE="%*"
-bind '"\C-q": "%-\n"'
 
 [ -z "$PS1" ] || stty -ixon
 

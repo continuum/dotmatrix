@@ -2,6 +2,7 @@ fpath=(
   $fpath
   ~/.rvm/scripts/zsh/Completion
   ~/.zsh/functions
+  /usr/local/share/zsh/site-functions
 )
 
 source "$HOME/.hashrc"
@@ -83,7 +84,7 @@ setopt INC_APPEND_HISTORY
 # default apps
 (( ${+PAGER}   )) || export PAGER='less'
 (( ${+EDITOR}  )) || export EDITOR='vim'
-export PSQL_EDITOR='vim -c"set syntax=sql"'
+export PSQL_EDITOR='vim -c"setf sql"'
 
 # aliases
 alias mv='nocorrect mv'       # no spelling correction on mv
@@ -122,3 +123,6 @@ compdef _git gco=git-checkout
 # import local zsh customizations, if present
 zrcl="$HOME/.zshrc.local"
 [[ ! -a $zrcl ]] || source $zrcl
+
+# remove duplicates in $PATH
+typeset -aU path
