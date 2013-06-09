@@ -241,3 +241,6 @@ alias vi='vim'
 bettervim="/Applications/MacVim.app/Contents/MacOS/Vim"
 [ -f "$bettervim" ] && alias vim="$bettervim"
 [ -f "$HOME$bettervim" ] && alias vim="$HOME$bettervim"
+
+alias sj='specjour'
+alias rd='rake deploy'
